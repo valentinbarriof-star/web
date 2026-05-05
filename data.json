@@ -1,0 +1,119 @@
+{
+  "meta": {
+    "nombre": "valentin barrio",
+    "about_slug": "_valentin",
+    "tagline": "creative based in europe",
+    "email": "valentinbarrio.f@gmail.com",
+    "instagram": "valentinbarrio"
+  },
+  "projects": [
+    {
+      "slug": "_valentin",
+      "nombre": "about me",
+      "visible": false,
+      "tipo": "",
+      "lugar": "",
+      "web": "meowrhino.studio",
+      "descripcion": "Photographer and visual artist based in Barcelona. Focused on capturing the raw energy of live events, fashion editorials, and intimate portraits.",
+      "extras": [
+        { "tipo": "texto", "texto": "Every frame is a conversation between what happened and what I chose to see.", "posicion": 3 },
+        { "tipo": "audio", "src": "WhatsApp Audio 2026-04-09 at 11.23.28.opus", "posicion": 5 },
+        { "tipo": "texto", "texto": "I don't chase the light. I wait for it to find its way.", "posicion": 7 },
+        { "tipo": "texto", "texto": "The silence between two frames is where the real story lives.", "posicion": 9 }
+      ]
+    },
+    {
+      "slug": "bolder",
+      "nombre": "Bolder",
+      "visible": false,
+      "tipo": "press",
+      "lugar": "Barcelona",
+      "fecha": "jan. 26",
+      "descripcion": "Editorial shoot exploring contrast between urban attitude and raw natural landscapes."
+    },
+    {
+      "slug": "brunch",
+      "nombre": "Brunch!",
+      "visible": true,
+      "tipo": "festival",
+      "lugar": "Barcelona",
+      "fecha": "august 25",
+      "descripcion": "Full documentation of the Brunch electronic music series. Light, smoke, and movement."
+    },
+    {
+      "slug": "kalaRos",
+      "nombre": "Kala Ros",
+      "visible": false,
+      "tipo": "press",
+      "lugar": "Barcelona",
+      "fecha": "dec. 25",
+      "descripcion": "Intimate portrait series. Natural light, minimal intervention."
+    },
+    {
+      "slug": "lucho",
+      "nombre": "Lucho (Ve)",
+      "visible": true,
+      "tipo": "press",
+      "lugar": "Reflejo 44",
+      "fecha": "feb. 26",
+      "descripcion": "Artist portrait series. Capturing the personality behind the sound."
+    },
+    {
+      "slug": "lynn",
+      "nombre": "Lynn",
+      "visible": true,
+      "tipo": "press",
+      "lugar": "Mallorca",
+      "fecha": "oct. 25",
+      "descripcion": "Golden hour portrait session. Warmth and authenticity.",
+      "equipo": [
+        { "nombre": "Rivka", "rol": "photo assist & 2nd camera", "url": "https://instagram.com/rivka" }
+      ]
+    },
+    {
+      "slug": "razz",
+      "nombre": "Razz",
+      "visible": true,
+      "tipo": "club",
+      "lugar": "Barcelona",
+      "fecha": "feb. 25",
+      "descripcion": "Razzmatazz nights. The energy of the crowd under neon and strobe."
+    },
+    {
+      "slug": "soundit",
+      "nombre": "Sound it!",
+      "visible": true,
+      "tipo": "festival",
+      "lugar": "Barcelona",
+      "fecha": "august 25",
+      "descripcion": "Complete visual chronicle of Soundit festival. From backstage to main stage."
+    },
+    {
+      "slug": "yu",
+      "nombre": "Yu",
+      "visible": true,
+      "tipo": "club",
+      "lugar": "Barcelona",
+      "fecha": "dec. 25",
+      "descripcion": "Fashion editorial blending Eastern and Western aesthetics."
+    },
+    {
+      "slug": "carlos",
+      "nombre": "Carlos",
+      "visible": true,
+      "tipo": "press",
+      "lugar": "Barcelona",
+      "fecha": "Spring 2025",
+      "descripcion": "Portrait editorial with Carlos. Character, attitude, and natural expression."
+    },
+    {
+      "slug": "heyami",
+      "nombre": "Hey Ami",
+      "visible": true,
+      "tipo": "press",
+      "lugar": "Barcelona",
+      "fecha": "Winter 2025",
+      "descripcion": "Creative direction and photography for Hey Ami. Bold visuals and identity."
+    }
+  ]
+}
