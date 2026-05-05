@@ -481,12 +481,14 @@ const InfState = {
 const PORTADA_VIDEO_EXTS = ['mp4', 'webm', 'mov'];
 
 /** Construye el medio del strip.
- *  Por defecto carga portada.webm de forma lazy (data-src + IntersectionObserver).
- *  Si el proyecto define `portadaExt` en data.json, usa esa extensión en su lugar.
- *  Para extensiones de imagen usa loading="lazy" estándar.
+ *  Cada proyecto declara su formato en `extension_portada` (data.json). El
+ *  archivo siempre se llama `portada.<ext>` — sin probing ni fallbacks que
+ *  generen 404s. Por defecto, webp (imagen).
+ *  Para extensiones de vídeo (webm/mp4/mov) carga el src de forma lazy
+ *  (data-src + IntersectionObserver). Para imagen usa loading="lazy".
  *  Si el archivo no existe, el strip queda transparente (hover sigue funcionando). */
-function buildStripMedia(slug, alt, portadaExt) {
-  const ext = portadaExt || 'webm';
+function buildStripMedia(slug, alt, extension_portada) {
+  const ext = extension_portada || 'webp';
 
   if (PORTADA_VIDEO_EXTS.includes(ext)) {
     const video = h('video', {
@@ -512,21 +514,33 @@ function buildStripMedia(slug, alt, portadaExt) {
   return img;
 }
 
-/** Crea un banner decorativo (vídeo en bucle, no clickable) para intercalar
- *  en la home entre proyectos. `item.banner` es el nombre del archivo dentro
- *  de `_BANNERS/`. Comparte forma con `.strip` (3:1 full width) pero sin
- *  link, hover ni dots. */
+/** Crea un banner decorativo (no clickable) para intercalar en la home entre
+ *  proyectos. `item.banner` es el nombre del archivo dentro de `_BANNERS/`;
+ *  la extensión decide si es vídeo (webm/mp4/mov) o imagen (webp/jpg/png/gif).
+ *  Comparte forma con `.strip` (3:1 full width) pero sin link, hover ni dots. */
 function buildBanner(item) {
-  const video = h('video', {
-    src: bannerAsset(item.banner),
-    autoplay: true,
-    muted: true,
-    loop: true,
-    playsInline: true,
-    preload: 'metadata',
-    class: 'strip__media',
-  });
-  return h('div', { class: 'strip strip--banner', 'aria-hidden': 'true' }, video);
+  const file = String(item.banner || '');
+  const ext = (file.split('.').pop() || '').toLowerCase();
+  const isVideo = ext === 'webm' || ext === 'mp4' || ext === 'mov';
+
+  const media = isVideo
+    ? h('video', {
+        src: bannerAsset(file),
+        autoplay: true,
+        muted: true,
+        loop: true,
+        playsInline: true,
+        preload: 'metadata',
+        class: 'strip__media',
+      })
+    : h('img', {
+        src: bannerAsset(file),
+        alt: '',
+        loading: 'lazy',
+        class: 'strip__media',
+      });
+  media.addEventListener('error', () => media.remove(), { once: true });
+  return h('div', { class: 'strip strip--banner', 'aria-hidden': 'true' }, media);
 }
 
 /** Crea un <a class="strip"> con medio + overlay + dot único para un proyecto.
@@ -534,7 +548,7 @@ function buildBanner(item) {
  *  Hover (desktop): aparece velo oscuro + título centrado; el dot sigue ahí.
  *  Click: la transición de iris arranca desde el dot. */
 function buildStrip(p) {
-  const media = buildStripMedia(p.slug, p.nombre || p.slug, p.portadaExt);
+  const media = buildStripMedia(p.slug, p.nombre || p.slug, p.extension_portada);
   const overlay = h('div', { class: 'strip__overlay' },
     h('span', { class: 'strip__title', textContent: p.nombre || p.slug }),
   );
@@ -560,6 +574,7 @@ function buildStrip(p) {
 
 function appendRandomBatch(n = 6) {
   if (!InfState.stripsEl || !InfState.pool.length) return;
+  const idOf = (it) => it.banner || it.slug;
   const frag = document.createDocumentFragment();
   const newStrips = [];
   for (let i = 0; i < n; i++) {
@@ -568,18 +583,18 @@ function appendRandomBatch(n = 6) {
       InfState.poolPtr = 0;
     }
     // Si el siguiente coincide con el último añadido, avanzamos uno más
-    if (InfState.pool.length > 1 && InfState.pool[InfState.poolPtr].slug === InfState.lastSlug) {
+    if (InfState.pool.length > 1 && idOf(InfState.pool[InfState.poolPtr]) === InfState.lastSlug) {
       InfState.poolPtr++;
       if (InfState.poolPtr >= InfState.pool.length) {
         InfState.pool = shuffle(InfState.pool);
         InfState.poolPtr = 0;
       }
     }
-    const p = InfState.pool[InfState.poolPtr++];
-    InfState.lastSlug = p.slug;
-    const strip = buildStrip(p);
-    newStrips.push(strip);
-    frag.appendChild(strip);
+    const item = InfState.pool[InfState.poolPtr++];
+    InfState.lastSlug = idOf(item);
+    const node = item.banner ? buildBanner(item) : buildStrip(item);
+    newStrips.push(node);
+    frag.appendChild(node);
   }
   InfState.stripsEl.appendChild(frag);
   if (InfState.videoIO) newStrips.forEach(el => InfState.videoIO.observe(el));
@@ -682,8 +697,8 @@ function renderHome(data) {
 
   InfState.videoIO = setupVideoLazyLoad(strips);
 
-  // El infinito baraja los proyectos visibles (sin banners).
-  const shufflable = (data.projects || []).filter(p => !p.banner && p.visible !== false);
+  // El infinito mezcla proyectos visibles + banners.
+  const shufflable = (data.projects || []).filter(it => it.banner || it.visible !== false);
   InfState.stripsEl = strips;
   setupInfiniteScroll(shufflable, pageAbort.signal);
 }

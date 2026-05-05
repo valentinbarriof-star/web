@@ -19,7 +19,7 @@ No sirve abrir `index.html` con doble click. Hay que servirla:
 python3 -m http.server 8090
 # luego abrir http://localhost:8090
 ```
-(Solo para probar en tu ordenador. En GitHub Pages funciona automático.)
+(Solo para probar en tu ordenador. En Cloudflare Pages funciona automático.)
 
 ### Formatos
 - **Imágenes:** siempre `.webp`. Ancho recomendado 1200–2000 px, peso ideal < 400 KB.
@@ -46,7 +46,7 @@ Todo lo que edites en este repo se sube a la web con 3 pasos en GitHub:
 2. Pulsa **Add file → Upload files**
 3. Arrastra el archivo y pulsa **Commit changes**
 
-En pocos minutos GitHub Pages refresca la web automáticamente.
+En 1–2 minutos Cloudflare Pages refresca la web automáticamente.
 
 > Si usas VS Code o cualquier editor con git: `git add -A && git commit -m "update" && git push`
 
@@ -69,7 +69,7 @@ valentin3/
 │   ├── bolder/
 │   ├── brunch/
 │   └── …
-├── _BANNERS/           ← vídeos decorativos opcionales (ver más abajo)
+├── _BANNERS/           ← banners decorativos opcionales (vídeo o imagen, ver sección BANNERS)
 └── README.md           ← este archivo
 ```
 
@@ -126,13 +126,13 @@ No te olvides de la coma al final del proyecto anterior.
 | `lugar` | Dónde se hizo. Aparece en la ficha |
 | `fecha` | Cuándo se hizo. Aparece en la ficha |
 | `descripcion` | Texto bajo el título del proyecto |
-| `portadaExt` | (opcional) Extensión del archivo de portada si NO es `webm`. Ver sección PORTADA |
+| `extension_portada` | (opcional) Extensión del archivo de portada. Por defecto `webp`. Ver sección PORTADA |
 | `equipo` | (opcional) Array de colaboradores. Ver sección EQUIPO |
 | `extras` | (opcional) Textos / audios intercalados en la galería. Ver sección EXTRAS |
 
 > **Campos vacíos = se omiten del render.** Si un proyecto todavía no tiene `tipo`, `lugar`, `fecha` o `descripcion`, simplemente **no pongas el campo**. La sección correspondiente desaparece. La ficha técnica también desaparece entera si todos sus campos están vacíos.
 
-> **Olvidate de `imgHome` e `imgCount`** — ya no existen. La portada del strip de la home se busca como `_PROJECTS/<slug>/portada.webm` (ver siguiente sección) y la galería se descubre sola.
+> **Olvidate de `imgHome` e `imgCount`** — ya no existen. La portada del strip de la home se busca como `_PROJECTS/<slug>/portada.webp` (ver siguiente sección) y la galería se descubre sola.
 
 ### ✏️ Modificar un proyecto
 Abre `data.json`, busca el proyecto, edita los campos que quieras. Si cambias el `slug`, **renombra también la carpeta** en `_PROJECTS/` para que coincida.
@@ -149,46 +149,66 @@ El orden en la home es el mismo que en el array `projects` de `data.json`. Mueve
 
 > El `_valentin` (about) está oculto (`visible: false`), no aparece en las tiras. El acceso es clicando el nombre en la cabecera de la home.
 
-### 🎞️ Banners de vídeo intercalados
-
-Si quieres meter un loop de vídeo decorativo entre proyectos (no clickable, ~5 seg):
-
-1. Mete el vídeo en `_BANNERS/` (carpeta nueva en la raíz). Formato recomendado: `webm` 3:1, < 1 MB.
-2. En `data.json`, dentro del array `projects`, añade un objeto con la clave `banner` en la posición donde quieras que aparezca:
-   ```json
-   "projects": [
-     { "slug": "lynn", "nombre": "Lynn", "visible": true, ... },
-     { "banner": "loop1.webm" },
-     { "slug": "yu", "nombre": "Yu", "visible": true, ... },
-     …
-   ]
-   ```
-
-> Los banners **solo aparecen en la pasada inicial**, no en el scroll infinito (el aleatorio solo recicla proyectos clickables). Más detalles en `_BANNERS/README.md`.
-
 ---
 
 ## PORTADA del strip de la home
 
-Cada proyecto necesita una **portada dedicada** dentro de su carpeta:
+Cada proyecto **visible** necesita una **portada dedicada** dentro de su carpeta:
 ```
 _PROJECTS/mi-proyecto/
-├── portada.webm     ← esta es la portada del strip de la home (vídeo en bucle)
+├── portada.webp     ← portada del strip de la home (imagen 3:1)
 ├── 1.webp           ← galería del proyecto
 ├── 2.webp
 └── …
 ```
 
-- **Por defecto la web busca `portada.webm`** (vídeo en bucle, automuteado, 3:1).
-- **Si quieres usar otro formato**, añade el campo `portadaExt` al proyecto en `data.json`:
+- **Por defecto la portada es `portada.webp`** (imagen, aspect ratio 3:1).
+- **El archivo se llama siempre `portada`** + la extensión. Si la cambias, no pongas otro nombre — el código solo busca `portada.<ext>`.
+- **Si quieres usar otro formato** (vídeo en bucle, gif, jpg…), añade el campo `extension_portada` al proyecto en `data.json`:
   ```json
-  { "slug": "lynn", "nombre": "Lynn", …, "portadaExt": "webp" }
+  { "slug": "lynn", "nombre": "Lynn", …, "extension_portada": "webm" }
   ```
-  Extensiones soportadas: `webm`, `mp4`, `mov` (vídeo) o `webp`, `jpg`, `png` (imagen).
-- **Formato recomendado:** `webm` con aspect ratio **3:1** (ej. 2000×667 px), peso < 1 MB.
-- **El archivo se llama siempre `portada`** + la extensión que toque (`portada.webm`, `portada.webp`, etc.).
+  Extensiones soportadas: `webp`, `jpg`, `png`, `gif` (imagen) o `webm`, `mp4`, `mov` (vídeo). Los vídeos van automuteados y en bucle.
+- **Formato recomendado:** `webp` 3:1 (ej. 2000×667 px), peso < 400 KB. Si usas vídeo, `webm` < 1 MB.
 
-> Si un proyecto no tiene `portada.<ext>`, el strip queda transparente (sin imagen, pero el hover sigue funcionando). Si está oculto (`visible: false`) tampoco aparece en la home, así que no pasa nada.
+> Si un proyecto no tiene `portada.<ext>`, el strip queda transparente (sin imagen, pero el hover sigue funcionando). Si está oculto (`visible: false`) tampoco aparece en la home.
+
+---
+
+## BANNERS decorativos en la home
+
+Banners son piezas (imagen o vídeo) que se intercalan entre proyectos en la home. **Son decorativos**: no se pueden clicar, no enlazan a nada, no tienen hover ni overlay.
+
+### Cómo añadir un banner
+
+1. Mete el archivo en `_BANNERS/` (vídeo `.webm/.mp4/.mov` o imagen `.webp/.jpg/.png/.gif`).
+2. En `data.json`, dentro del array `projects`, añade un objeto con la clave `banner` en la posición donde quieras que aparezca:
+   ```json
+   "projects": [
+     { "slug": "lynn", … },
+     { "banner": "loop1.webm" },
+     { "slug": "yu", … },
+     { "banner": "foto.webp" },
+     …
+   ]
+   ```
+   El banner aparece en home **en la posición que ocupe en el array** y además se mezcla al azar en el scroll infinito junto con los proyectos.
+
+### Formatos
+
+La extensión del archivo decide cómo se renderiza:
+
+- **Vídeo** (`.webm`, `.mp4`, `.mov`): autoplay, muteado, en bucle. Bueno para loops cortos (~5 seg).
+- **Imagen** (`.webp`, `.jpg`, `.jpeg`, `.png`, `.gif`): estática, lazy-load. Bueno para fotos sueltas o gifs.
+
+### Recomendaciones
+
+- **Aspect ratio:** 3:1 (mismo que los strips de proyecto, ej. 2000×667 px).
+- **Peso:** < 1 MB para no penalizar la carga de la home.
+- **Vídeo:** preferible `webm` por peso pequeño y soporte nativo.
+- **Imagen:** preferible `webp` por la misma razón.
+
+> Hay 2 banners de muestra en `_BANNERS/` (`banner1.webm`, `banner2.webm`). Bórralos o sustitúyelos cuando metas los tuyos.
 
 ---
 
@@ -311,10 +331,10 @@ Se define en el `<link rel="icon">` de `index.html` y `404.html` (línea 18 de c
 |---|---|
 | La web no carga nada | Error de sintaxis en `data.json` — una coma de más, una comilla sin cerrar. Valida con https://jsonlint.com |
 | Una imagen no se ve | El `slug` del proyecto no coincide con el nombre de la carpeta, o falta el archivo numerado (`3.webp`). Recuerda que la numeración tiene que ser consecutiva: si te saltas un número (`1.webp`, `2.webp`, falta el `3.webp`, `4.webp`), la web para de buscar en el hueco y no verás `4.webp` ni siguientes. |
-| La portada del proyecto en la home no es la que quiero | Reemplaza `_PROJECTS/<slug>/portada.webm` (o el archivo de portada que esté usando — `portada.webp`, `portada.mp4`, etc.) manteniendo el mismo nombre. |
+| La portada del proyecto en la home no es la que quiero | Reemplaza `_PROJECTS/<slug>/portada.webp` (o `portada.<ext>` si declaraste otra extensión con `extension_portada`) manteniendo el mismo nombre. |
 | El audio no suena | El `src` del bloque no coincide con el nombre exacto del archivo dentro de la carpeta del proyecto. Atento a mayúsculas/minúsculas y espacios. |
 | Los cambios no se ven | Caché del navegador. Ctrl+F5 (Windows) o Cmd+Shift+R (Mac). |
-| Al entrar directamente a `/bolder` da 404 | Solo en local con `python3 -m http.server`. En GitHub Pages sí funciona gracias a `404.html`. |
+| Al entrar directamente a `/bolder` da 404 | Solo en local con `python3 -m http.server`. En Cloudflare Pages sí funciona gracias a `404.html`. |
 
 ---
 
