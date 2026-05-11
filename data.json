@@ -30,6 +30,16 @@
       "lugar": "Barcelona",
       "fecha": "jan. 26",
       "descripcion": "Editorial shoot exploring contrast between urban attitude and raw natural landscapes."
+    }, 
+    {
+      "slug": "alona",
+      "nombre": "alona",
+      "visible": true,
+      "extension_portada": "webp",
+      "tipo": "press",
+      "lugar": "Barcelona",
+      "fecha": "may 25",
+      "descripcion": "personal descovery starring Alona."
     },
     {
       "slug": "brunch",
@@ -73,7 +83,7 @@
         { "nombre": "Rivka", "rol": "photo assist & 2nd camera", "url": "https://instagram.com/rivka" }
       ]
     },
-    { "banner": "banner1.webm" },
+    { "banner": "columna.webm" },
     {
       "slug": "razz",
       "nombre": "Razz",
@@ -104,7 +114,7 @@
       "fecha": "dec. 25",
       "descripcion": "Fashion editorial blending Eastern and Western aesthetics."
     },
-    { "banner": "banner2.webm" },
+    { "banner": "tetas.webm" },
     {
       "slug": "carlos",
       "nombre": "Carlos",
