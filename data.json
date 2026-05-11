@@ -16,13 +16,9 @@
       "web": "meowrhino.studio",
       "descripcion": "Photographer and visual artist based in Barcelona. Focused on capturing the raw energy of live events, fashion editorials, and intimate portraits.",
       "extras": [
-        { "tipo": "texto", "texto": "Every frame is a conversation between what happened and what I chose to see.", "posicion": 3 },
-        { "tipo": "audio", "src": "WhatsApp Audio 2026-04-09 at 11.23.28.opus", "posicion": 5 },
-        { "tipo": "texto", "texto": "I don't chase the light. I wait for it to find its way.", "posicion": 7 },
-        { "tipo": "texto", "texto": "The silence between two frames is where the real story lives.", "posicion": 9 }
+        { "tipo": "texto", "texto": "Between life and death there is a space that holds a story.", "posicion": 3 },
       ]
-    },
-    {
+    },    
       "slug": "bolder",
       "nombre": "Bolder",
       "visible": false,
