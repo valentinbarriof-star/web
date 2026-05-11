@@ -16,7 +16,8 @@
       "web": "meowrhino.studio",
       "descripcion": "Photographer and visual artist based in Barcelona. Focused on capturing the raw energy of live events, fashion editorials, and intimate portraits.",
       "extras": [
-        { "tipo": "texto", "texto": "Between life and death there is a space that holds a story.", "posicion": 2 }
+        { "tipo": "texto", "texto": "Between life and death there is a space that holds a story.", "posicion": 2 },
+    {
       "slug": "alona",
       "nombre": "alona",
       "visible": true,
