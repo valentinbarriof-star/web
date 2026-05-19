@@ -167,9 +167,16 @@ const Iris = (() => {
     el.style.pointerEvents = v ? 'auto' : 'none';
   }
 
-  /** Radio máximo necesario para que el círculo cubra la pantalla desde (x,y). */
+  /** Radio máximo necesario para que el círculo cubra la pantalla desde (x,y).
+   *  Usamos el viewport más grande conocido (incluyendo `screen.*`) para que,
+   *  si en iOS Chrome la barra inferior colapsa durante o tras la animación
+   *  y `innerHeight` crece, el círculo siga cubriendo el nuevo borde y no
+   *  deje una franja del `outer` visible abajo. Sobre-pasarse no se nota
+   *  porque el `.iris` está clipeado por `inset:0`. */
   function maxRadius(x, y) {
-    return Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 40;
+    const w = Math.max(innerWidth, document.documentElement.clientWidth, screen.width);
+    const h = Math.max(innerHeight, document.documentElement.clientHeight, screen.height);
+    return Math.hypot(Math.max(x, w - x), Math.max(y, h - y)) + 40;
   }
 
   function setMask(x, y, r, covering) {
@@ -206,11 +213,20 @@ const Iris = (() => {
     });
   }
 
+  // Estado "oculto" canónico: punto de 1px en (0,0), igual que el init.
+  // Tras un `uncover`, el estado final natural sería un punto de 1px en
+  // (x,y) — que se ve en el centro como una mota residual. Movemos ese
+  // punto a la esquina (0,0) donde es imperceptible.
+  function reset() {
+    if (!el) return;
+    setMask(0, 0, 0, true);
+  }
+
   function reveal(x, y, duration = REVEAL_MS) {
     ensure();
-    if (REDUCED_MOTION) { setMask(x, y, 99999, false); return Promise.resolve(); }
+    if (REDUCED_MOTION) { setMask(x, y, 99999, false); reset(); return Promise.resolve(); }
     return animateValue(0, maxRadius(x, y), duration, easeInOutCubic,
-      (r) => setMask(x, y, r, false));
+      (r) => setMask(x, y, r, false)).then(reset);
   }
 
   // El agujero transparente se encoge hasta colapsar en (x,y). Empieza con
@@ -230,9 +246,9 @@ const Iris = (() => {
   // continua de contracción hacia el centro).
   function uncover(x, y, duration = REVEAL_MS) {
     ensure();
-    if (REDUCED_MOTION) { setMask(x, y, 0, true); return Promise.resolve(); }
+    if (REDUCED_MOTION) { reset(); return Promise.resolve(); }
     return animateValue(maxRadius(x, y), 0, duration, easeInOutCubic,
-      (r) => setMask(x, y, r, true));
+      (r) => setMask(x, y, r, true)).then(reset);
   }
 
   const pause = () => delay(PAUSE_MS);
