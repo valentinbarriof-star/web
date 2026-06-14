@@ -49,6 +49,16 @@
       "fecha": "august 25",
       "descripcion": "Full documentation of the Brunch electronic music series. Light, smoke, and movement."
     },
+     {
+      "slug": "bolder",
+      "nombre": "bolder",
+      "visible": true,
+      "extension_portada": "webp",
+      "tipo": "press",
+      "lugar": "Barcelona",
+      "fecha": "feb 26",
+      "descripcion": "collective first-ever presskit."
+    },
     {
       "slug": "kalaRos",
       "nombre": "Kala Ros",
