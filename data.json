@@ -19,6 +19,16 @@
         { "tipo": "texto", "texto": "Between life and death there is a space that holds a story.", "posicion": 2 }
       ]
     },
+     {
+      "slug": "bunker",
+      "nombre": "bunker",
+      "visible": true,
+      "extension_portada": "webp",
+      "tipo": "club",
+      "lugar": "Barcelona",
+      "fecha": "jun 26",
+      "descripcion": "guiding light through the club experience."
+    },
     {
       "slug": "alona",
       "nombre": "alona",
