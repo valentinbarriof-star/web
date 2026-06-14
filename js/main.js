@@ -167,16 +167,9 @@ const Iris = (() => {
     el.style.pointerEvents = v ? 'auto' : 'none';
   }
 
-  /** Radio máximo necesario para que el círculo cubra la pantalla desde (x,y).
-   *  Usamos el viewport más grande conocido (incluyendo `screen.*`) para que,
-   *  si en iOS Chrome la barra inferior colapsa durante o tras la animación
-   *  y `innerHeight` crece, el círculo siga cubriendo el nuevo borde y no
-   *  deje una franja del `outer` visible abajo. Sobre-pasarse no se nota
-   *  porque el `.iris` está clipeado por `inset:0`. */
+  /** Radio máximo necesario para que el círculo cubra la pantalla desde (x,y). */
   function maxRadius(x, y) {
-    const w = Math.max(innerWidth, document.documentElement.clientWidth, screen.width);
-    const h = Math.max(innerHeight, document.documentElement.clientHeight, screen.height);
-    return Math.hypot(Math.max(x, w - x), Math.max(y, h - y)) + 40;
+    return Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 40;
   }
 
   function setMask(x, y, r, covering) {
@@ -213,20 +206,11 @@ const Iris = (() => {
     });
   }
 
-  // Estado "oculto" canónico: punto de 1px en (0,0), igual que el init.
-  // Tras un `uncover`, el estado final natural sería un punto de 1px en
-  // (x,y) — que se ve en el centro como una mota residual. Movemos ese
-  // punto a la esquina (0,0) donde es imperceptible.
-  function reset() {
-    if (!el) return;
-    setMask(0, 0, 0, true);
-  }
-
   function reveal(x, y, duration = REVEAL_MS) {
     ensure();
-    if (REDUCED_MOTION) { setMask(x, y, 99999, false); reset(); return Promise.resolve(); }
+    if (REDUCED_MOTION) { setMask(x, y, 99999, false); return Promise.resolve(); }
     return animateValue(0, maxRadius(x, y), duration, easeInOutCubic,
-      (r) => setMask(x, y, r, false)).then(reset);
+      (r) => setMask(x, y, r, false));
   }
 
   // El agujero transparente se encoge hasta colapsar en (x,y). Empieza con
@@ -246,9 +230,9 @@ const Iris = (() => {
   // continua de contracción hacia el centro).
   function uncover(x, y, duration = REVEAL_MS) {
     ensure();
-    if (REDUCED_MOTION) { reset(); return Promise.resolve(); }
+    if (REDUCED_MOTION) { setMask(x, y, 0, true); return Promise.resolve(); }
     return animateValue(maxRadius(x, y), 0, duration, easeInOutCubic,
-      (r) => setMask(x, y, r, true)).then(reset);
+      (r) => setMask(x, y, r, true));
   }
 
   const pause = () => delay(PAUSE_MS);
@@ -598,9 +582,20 @@ function appendRandomBatch(n = 6) {
       InfState.pool = shuffle(InfState.pool);
       InfState.poolPtr = 0;
     }
-    // Si el siguiente coincide con el último añadido, avanzamos uno más
-    if (InfState.pool.length > 1 && idOf(InfState.pool[InfState.poolPtr]) === InfState.lastSlug) {
+    // Evita repetición inmediata: mientras el siguiente coincida con el último
+    // añadido, avanzamos (re-barajando al agotar el pool). Es un bucle acotado
+    // —máx. pool.length saltos— porque, al triplicar el pool, tras el barajado
+    // pueden quedar copias del mismo slug seguidas. También cubre la costura
+    // entre la pasada inicial (orden del JSON, termina en el último proyecto)
+    // y el primer batch aleatorio: `lastSlug` se siembra con ese último strip.
+    let guard = 0;
+    while (
+      InfState.pool.length > 1 &&
+      guard < InfState.pool.length &&
+      idOf(InfState.pool[InfState.poolPtr]) === InfState.lastSlug
+    ) {
       InfState.poolPtr++;
+      guard++;
       if (InfState.poolPtr >= InfState.pool.length) {
         InfState.pool = shuffle(InfState.pool);
         InfState.poolPtr = 0;
@@ -616,10 +611,15 @@ function appendRandomBatch(n = 6) {
   if (InfState.videoIO) newStrips.forEach(el => InfState.videoIO.observe(el));
 }
 
-function setupInfiniteScroll(projects, signal) {
+function setupInfiniteScroll(projects, signal, seedLastSlug = null) {
   // Triplicamos para que el ciclo de "re-baraja" no sea tan frecuente.
   InfState.pool = shuffle([...projects, ...projects, ...projects]);
   InfState.poolPtr = 0;
+  // Sembramos el último slug con el del último strip de la pasada inicial, para
+  // que el primer ítem del infinito nunca repita ese proyecto (evita el caso
+  // raro de empezar por el mismo que cierra el orden del JSON). Se reinicia en
+  // cada entrada a home, evitando arrastrar estado stale entre navegaciones.
+  InfState.lastSlug = seedLastSlug;
 
   let ticking = false;
   const onScroll = () => {
@@ -702,21 +702,22 @@ function renderHome(data) {
   const strips = h('div', { class: 'strips' });
   // Orden inicial: proyectos visibles + banners, en el orden del JSON.
   // Los banners son decorativos, no clickables, y solo aparecen en esta pasada.
-  (data.projects || [])
-    .filter((it) => it.banner || it.visible !== false)
-    .forEach((it) => {
-      strips.appendChild(it.banner ? buildBanner(it) : buildStrip(it));
-    });
+  const visibleItems = (data.projects || []).filter((it) => it.banner || it.visible !== false);
+  visibleItems.forEach((it) => {
+    strips.appendChild(it.banner ? buildBanner(it) : buildStrip(it));
+  });
 
   const main = h('main', { class: 'page page-home' }, header, strips);
   mount(main);
 
   InfState.videoIO = setupVideoLazyLoad(strips);
 
-  // El infinito mezcla proyectos visibles + banners.
-  const shufflable = (data.projects || []).filter(it => it.banner || it.visible !== false);
+  // El infinito mezcla proyectos visibles + banners. Le pasamos el último ítem
+  // de la pasada inicial como semilla para que el scroll no arranque repitiéndolo.
+  const lastInitial = visibleItems[visibleItems.length - 1];
+  const seedLastSlug = lastInitial ? (lastInitial.banner || lastInitial.slug) : null;
   InfState.stripsEl = strips;
-  setupInfiniteScroll(shufflable, pageAbort.signal);
+  setupInfiniteScroll(visibleItems, pageAbort.signal, seedLastSlug);
 }
 
 
