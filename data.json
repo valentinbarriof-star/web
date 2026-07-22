@@ -19,6 +19,16 @@
         { "tipo": "texto", "texto": "Between life and death there is a space that holds a story.", "posicion": 2 }
       ]
     },
+    {
+      "slug": "cupra",
+      "nombre": "cupra",
+      "visible": true,
+      "extension_portada": "webp",
+      "tipo": "brand",
+      "lugar": "Barcelona",
+      "fecha": "july 26",
+      "descripcion": "following CUPRA Raval presentation at Barcelona-Catalunya circuit."
+    },
      {
       "slug": "bunker",
       "nombre": "bunker",
