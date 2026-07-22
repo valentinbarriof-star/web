@@ -24,7 +24,7 @@ python3 -m http.server 8090
 ### Formatos
 - **Imágenes:** siempre `.webp`. Ancho recomendado 1200–2000 px, peso ideal < 400 KB.
 - **Audios:** `.opus` o `.mp3`. Lo que tengas a mano.
-- **Nombre de archivos:** numerados `1.webp`, `2.webp`, `3.webp`… sin saltos.
+- **Nombre de archivos:** numerados `1.webp`, `2.webp`, `3.webp`… Numera seguido, sin saltos: si declaras cuántas fotos hay (campo `imagenes`, ver más abajo) un hueco simplemente no se muestra; si no lo declaras, la web descubre las fotos sola y se detiene en el primer hueco.
 
 ### Caché del navegador
 Si cambias algo y al abrir la web sigues viendo lo viejo: es la caché.
@@ -101,7 +101,7 @@ _PROJECTS/mi-proyecto/
 ├── 3.webp
 └── …
 ```
-Las imágenes deben estar numeradas de forma consecutiva empezando en 1. **No hace falta decir cuántas hay**: la web sondea automáticamente hasta encontrar el primer hueco.
+Numera las imágenes empezando en 1. **No hace falta decir cuántas hay**: si no añades el campo `imagenes` (ver tabla más abajo), la web las descubre solas —pero entonces la numeración debe ser consecutiva, sin saltos, porque el descubrimiento se detiene en el primer hueco.
 
 **2. Añade el proyecto a `data.json`** dentro del array `projects`:
 ```json
@@ -127,6 +127,7 @@ No te olvides de la coma al final del proyecto anterior.
 | `fecha` | Cuándo se hizo. Aparece en la ficha |
 | `descripcion` | Texto bajo el título del proyecto |
 | `extension_portada` | (opcional) Extensión del archivo de portada. Por defecto `webp`. Ver sección PORTADA |
+| `imagenes` | (opcional) Cuántas fotos numeradas (`1.webp`, `2.webp`, …) tiene la carpeta. Si lo pones, la galería carga al instante; si no, la web las descubre sola (y en ese caso la numeración debe ser consecutiva, sin saltos) |
 | `equipo` | (opcional) Array de colaboradores. Ver sección EQUIPO |
 | `extras` | (opcional) Textos / audios intercalados en la galería. Ver sección EXTRAS |
 
@@ -208,13 +209,13 @@ La extensión del archivo decide cómo se renderiza:
 - **Vídeo:** preferible `webm` por peso pequeño y soporte nativo.
 - **Imagen:** preferible `webp` por la misma razón.
 
-> Hay 2 banners de muestra en `_BANNERS/` (`banner1.webm`, `banner2.webm`). Bórralos o sustitúyelos cuando metas los tuyos.
+> `_BANNERS/` ya trae varios vídeos `.webm` de ejemplo (`balcon.webm`, `columna.webm`, `dedos.webm`, `ojoFuego.webm`, `tetas.webm`, `PORTADAVID6_1080.webm`…). Bórralos o sustitúyelos cuando metas los tuyos.
 
 ---
 
 ## EXTRAS: textos y audios intercalados en la galería
 
-La galería del proyecto siempre se rellena automáticamente con las imágenes numeradas (`1.webp`, `2.webp`, …) que haya en la carpeta. Si quieres **meter una cita o una nota de voz entre dos imágenes concretas**, añade un campo `extras` con un array de objetos:
+La galería del proyecto se rellena con las imágenes numeradas (`1.webp`, `2.webp`, …) que haya en la carpeta —al instante si declaraste `imagenes`, o descubriéndolas sola si no—. Si quieres **meter una cita o una nota de voz entre dos imágenes concretas**, añade un campo `extras` con un array de objetos:
 
 ```json
 {
@@ -330,7 +331,7 @@ Se define en el `<link rel="icon">` de `index.html` y `404.html` (línea 18 de c
 | Síntoma | Causa probable |
 |---|---|
 | La web no carga nada | Error de sintaxis en `data.json` — una coma de más, una comilla sin cerrar. Valida con https://jsonlint.com |
-| Una imagen no se ve | El `slug` del proyecto no coincide con el nombre de la carpeta, o falta el archivo numerado (`3.webp`). Recuerda que la numeración tiene que ser consecutiva: si te saltas un número (`1.webp`, `2.webp`, falta el `3.webp`, `4.webp`), la web para de buscar en el hueco y no verás `4.webp` ni siguientes. |
+| Una imagen no se ve | El `slug` del proyecto no coincide con el nombre de la carpeta, o el archivo no está subido / tiene otro nombre. Si declaraste `imagenes`, un archivo que falte simplemente no aparece (las demás se ven igual). Si **no** declaraste `imagenes`, la web descubre las fotos sola y se detiene en el primer hueco: si falta `3.webp`, no verás `4.webp` en adelante aunque existan. |
 | La portada del proyecto en la home no es la que quiero | Reemplaza `_PROJECTS/<slug>/portada.webp` (o `portada.<ext>` si declaraste otra extensión con `extension_portada`) manteniendo el mismo nombre. |
 | El audio no suena | El `src` del bloque no coincide con el nombre exacto del archivo dentro de la carpeta del proyecto. Atento a mayúsculas/minúsculas y espacios. |
 | Los cambios no se ven | Caché del navegador. Ctrl+F5 (Windows) o Cmd+Shift+R (Mac). |

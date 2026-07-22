@@ -711,6 +711,9 @@ function renderHome(data) {
   mount(main);
 
   InfState.videoIO = setupVideoLazyLoad(strips);
+  // Desconectamos el observer al desmontar la página (mount() aborta el
+  // pageAbort anterior antes de crear este, así que el signal es el vigente).
+  pageAbort.signal.addEventListener('abort', () => InfState.videoIO.disconnect());
 
   // El infinito mezcla proyectos visibles + banners. Le pasamos el último ítem
   // de la pasada inicial como semilla para que el scroll no arranque repitiéndolo.
@@ -727,7 +730,8 @@ function renderHome(data) {
 // Estructura:
 //   .proj-margin--top   ← 20dvh con un dot centrado
 //   .proj-body          ← descripción + ficha técnica
-//   .gallery            ← imágenes 1..N (auto-discovered) con extras
+//   .gallery            ← imágenes 1..N (desde `imagenes` en data.json, o
+//                          auto-discovered si no está) con extras
 //                          (texto/audio) intercalados según `posicion`
 //   .proj-margin--bottom ← 20dvh con dot
 //   .home-link-wrap     ← "back to home"
@@ -806,14 +810,18 @@ function buildExtraBlock(slug, extra) {
   return null;
 }
 
-/** Rellena la galería con las `count` imágenes numeradas (1..count) e
- *  intercala los `extras` según su `posicion`:
+/** Rellena la galería con la lista `images` e intercala los `extras` según su
+ *  `posicion`:
  *   - posicion 0 → antes de la primera imagen
  *   - posicion N → justo después de la N-ésima imagen
- *  Varios extras pueden compartir posición; salen en el orden del array. */
-function populateGallery(gallery, p, count) {
-  const allImageUrls = [];
-  for (let i = 1; i <= count; i++) allImageUrls.push(projectImgUrl(p.slug, i));
+ *  Varios extras pueden compartir posición; salen en el orden del array.
+ *
+ *  `images` es un array de entradas `{ url, file }`. Las URLs que se pasan al
+ *  Lightbox son EXACTAMENTE las mismas que las de los <img>. Cada <img> se
+ *  autoelimina si el archivo no existe (conteo mal puesto o hueco en la
+ *  numeración), para no dejar iconos rotos en la galería. */
+function populateGallery(gallery, p, images) {
+  const allImageUrls = images.map((im) => im.url);
 
   const extrasByPos = {};
   for (const ex of (p.extras || [])) {
@@ -828,18 +836,18 @@ function populateGallery(gallery, p, count) {
   };
 
   flushExtras(0);
-  for (let i = 1; i <= count; i++) {
-    const myIdx = i - 1;
+  images.forEach((im, myIdx) => {
     const img = h('img', {
-      src: projectImgUrl(p.slug, i),
-      alt: `${p.nombre || p.slug} — ${i}`,
+      src: im.url,
+      alt: `${p.nombre || p.slug} — ${myIdx + 1}`,
       loading: 'lazy',
       class: 'gallery__img',
     });
+    img.addEventListener('error', () => img.remove(), { once: true });
     img.addEventListener('click', () => Lightbox.open(allImageUrls, myIdx, img));
     gallery.appendChild(img);
-    flushExtras(i);
-  }
+    flushExtras(myIdx + 1);
+  });
 }
 
 function buildGallery(_p) {
@@ -899,12 +907,32 @@ function renderProject(data, slug) {
   );
   mount(main);
 
-  // Auto-discovery de imágenes + intercalado de extras (texto/audio) según
-  // su `posicion`. No bloquea la transición; aparece tras ~300-700ms.
-  discoverGalleryCount(p.slug).then((count) => {
-    if (!gallery.isConnected) return; // ya navegó a otra página
-    if (count > 0 || p.extras?.length) populateGallery(gallery, p, count);
-  });
+  // Lista de imágenes + intercalado de extras (texto/audio) según su `posicion`.
+  //
+  //   1) Camino rápido: si el proyecto declara `imagenes` (entero > 0) en
+  //      data.json, construimos la lista 1..N directamente y pintamos la
+  //      galería sin ninguna petición de descubrimiento. Un archivo que
+  //      falte (conteo mal puesto o hueco) simplemente no se muestra, gracias
+  //      al handler de error de cada <img>.
+  //   2) Fallback: sin el campo, caemos al discoverGalleryCount de siempre,
+  //      que numera 1..count sondeando cuáles existen. No bloquea la transición.
+  const declaredCount = Number(p.imagenes) || 0;
+  if (declaredCount > 0) {
+    const images = [];
+    for (let i = 1; i <= declaredCount; i++) {
+      images.push({ url: projectImgUrl(p.slug, i), file: `${i}.webp` });
+    }
+    if (images.length || p.extras?.length) populateGallery(gallery, p, images);
+  } else {
+    discoverGalleryCount(p.slug).then((count) => {
+      if (!gallery.isConnected) return; // ya navegó a otra página
+      const images = [];
+      for (let i = 1; i <= count; i++) {
+        images.push({ url: projectImgUrl(p.slug, i), file: `${i}.webp` });
+      }
+      if (images.length || p.extras?.length) populateGallery(gallery, p, images);
+    });
+  }
 }
 
 function renderNotFound(slug) {
@@ -1040,6 +1068,10 @@ async function navigateTo(slug, opts = {}) {
     }
   } finally {
     Iris.setBusy(false);
+    // Si durante la transición llegó otro cambio de URL (p.ej. popstate
+    // descartado por estar ocupado), la URL y lo renderizado pueden haber
+    // quedado desincronizados: re-renderizamos sin animación para alinearlos.
+    if (slugFromPath() !== lastSlug) render(slugFromPath());
   }
 }
 
@@ -1073,6 +1105,8 @@ addEventListener('popstate', async () => {
     }
   } finally {
     Iris.setBusy(false);
+    // Idem navigateTo: si quedó desincronizado, re-renderizamos sin animación.
+    if (slugFromPath() !== lastSlug) render(slugFromPath());
   }
 });
 
